@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase";
 import { generatePresignedUploadUrl } from "@/lib/r2";
-import { sanitizeText, AUDIO_MIN_DURATION, AUDIO_MAX_DURATION, AUDIO_MAX_FILE_SIZE, ARTWORK_MAX_FILE_SIZE } from "@/lib/utils";
+import {
+  sanitizeText,
+  AUDIO_MIN_DURATION,
+  AUDIO_MAX_DURATION,
+  AUDIO_MAX_FILE_SIZE,
+  ARTWORK_MAX_FILE_SIZE,
+  audioExtensionFor,
+  imageExtensionFor,
+} from "@/lib/utils";
 import { checkRateLimit, RATE_LIMITS, rateLimitResponse } from "@/lib/rate-limit";
 import type { UploadInitRequest, UploadInitResponse } from "@/types";
 
@@ -53,6 +61,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Resolve content types: agent-supplied (whitelist via the helpers) or
+  // sensible defaults. Persist to track.metadata so the confirm route can
+  // derive the correct R2 key without any schema migration.
+  const bodyExtras = body as unknown as {
+    audio_content_type?: unknown;
+    artwork_content_type?: unknown;
+  };
+  const audioContentType =
+    typeof bodyExtras.audio_content_type === "string"
+      ? bodyExtras.audio_content_type
+      : "audio/mpeg";
+  const artworkContentType =
+    typeof bodyExtras.artwork_content_type === "string"
+      ? bodyExtras.artwork_content_type
+      : "image/jpeg";
+  const audioExt = audioExtensionFor(audioContentType);
+  const artworkExt = imageExtensionFor(artworkContentType);
+
   // Create track record
   const admin = getAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,7 +93,11 @@ export async function POST(request: NextRequest) {
       duration_seconds: body.duration_seconds,
       is_explicit: body.is_explicit || false,
       generation_model: body.generation_model ? sanitizeText(body.generation_model, 100) : null,
-      metadata: body.metadata || {},
+      metadata: {
+        ...(body.metadata || {}),
+        audio_content_type: audioContentType,
+        artwork_content_type: artworkContentType,
+      },
       status: "processing",
     })
     .select("id")
@@ -78,20 +108,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to create track" }, { status: 500 });
   }
 
-  // Generate presigned URLs
-  const audioKey = `audio/${agent.id}/${track.id}.mp3`;
+  // Generate presigned URLs with the chosen content type and extension.
+  const audioKey = `audio/${agent.id}/${track.id}.${audioExt}`;
   const audioUploadUrl = await generatePresignedUploadUrl(
     audioKey,
-    "audio/mpeg",
+    audioContentType,
     body.audio_file_size
   );
 
   let artworkUploadUrl: string | null = null;
   if (body.artwork_file_size) {
-    const artworkKey = `artwork/${agent.id}/${track.id}.jpg`;
+    const artworkKey = `artwork/${agent.id}/${track.id}.${artworkExt}`;
     artworkUploadUrl = await generatePresignedUploadUrl(
       artworkKey,
-      "image/jpeg",
+      artworkContentType,
       body.artwork_file_size
     );
   }

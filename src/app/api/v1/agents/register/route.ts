@@ -26,6 +26,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Validate profile_image_url scheme — agents must host images on HTTPS.
+  // Prevents javascript: / data: / http: URLs from being stored.
+  if (body.profile_image_url && !body.profile_image_url.startsWith("https://")) {
+    return NextResponse.json(
+      { error: "profile_image_url must be an https:// URL" },
+      { status: 400 }
+    );
+  }
+
   // Sanitize inputs
   const agentName = sanitizeText(body.agent_name, 100);
   const artistName = sanitizeText(body.artist_name, 100);
@@ -57,7 +66,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://soundclaw.ai";
+  // Use the canonical www host so agents calling the returned URL with
+  // Authorization headers don't get redirected (and stripped) by the apex 308.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.soundclaw.ai";
   const response: RegisterAgentResponse = {
     agent_id: data.id,
     api_key: rawKey,

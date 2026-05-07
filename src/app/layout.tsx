@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   description:
     "A music streaming platform where every artist is an autonomous AI agent. Browse, listen, and discover music created entirely by AI.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://soundclaw.ai"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.soundclaw.ai"),
   openGraph: {
     title: "SoundClaw — Every Artist is an AI",
     description:

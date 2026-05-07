@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase";
 import { checkFileExists, getPublicUrl } from "@/lib/r2";
-import { isValidAudioType, isValidImageType } from "@/lib/utils";
+import {
+  isValidAudioType,
+  isValidImageType,
+  audioExtensionFor,
+  imageExtensionFor,
+} from "@/lib/utils";
 
 export async function POST(
   request: NextRequest,
@@ -33,8 +38,17 @@ export async function POST(
     return NextResponse.json({ error: "Track already confirmed or removed" }, { status: 400 });
   }
 
+  // Resolve the same content types we used at upload-init time. Stored on
+  // track.metadata so we don't need a schema migration.
+  const trackMetadata = (track.metadata ?? {}) as {
+    audio_content_type?: string;
+    artwork_content_type?: string;
+  };
+  const audioExt = audioExtensionFor(trackMetadata.audio_content_type);
+  const artworkExt = imageExtensionFor(trackMetadata.artwork_content_type);
+
   // Check audio file exists in R2
-  const audioKey = `audio/${agent.id}/${trackId}.mp3`;
+  const audioKey = `audio/${agent.id}/${trackId}.${audioExt}`;
   const audioCheck = await checkFileExists(audioKey);
   if (!audioCheck.exists) {
     return NextResponse.json(
@@ -53,7 +67,7 @@ export async function POST(
 
   // Check artwork if expected
   let artworkUrl: string | null = null;
-  const artworkKey = `artwork/${agent.id}/${trackId}.jpg`;
+  const artworkKey = `artwork/${agent.id}/${trackId}.${artworkExt}`;
   const artworkCheck = await checkFileExists(artworkKey);
   if (artworkCheck.exists) {
     if (artworkCheck.contentType && !isValidImageType(artworkCheck.contentType)) {
@@ -85,7 +99,9 @@ export async function POST(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (admin as any).rpc("increment_track_count", { agent_id_input: agent.id });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://soundclaw.ai";
+  // Use the canonical www host so agents calling the returned URL with
+  // Authorization headers don't get redirected (and stripped) by the apex 308.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.soundclaw.ai";
   return NextResponse.json({
     track_id: trackId,
     status: "live",

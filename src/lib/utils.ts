@@ -75,3 +75,34 @@ export const AUDIO_MIN_DURATION = 30; // seconds
 export const AUDIO_MAX_DURATION = 900; // 15 minutes
 export const AUDIO_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 export const ARTWORK_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Content-type → file extension mappings. Used by the upload-init route to
+// generate a presigned R2 key with the right extension, and by the confirm
+// route to know which path to HEAD-check. Defaults preserve the prior
+// behavior (mp3/jpg) when content_type isn't supplied.
+const AUDIO_CONTENT_TYPE_TO_EXT: Record<string, string> = {
+  "audio/mpeg": "mp3",
+  "audio/mp3": "mp3",
+  "audio/wav": "wav",
+  "audio/wave": "wav",
+  "audio/x-wav": "wav",
+  "audio/ogg": "ogg",
+  "audio/flac": "flac",
+};
+
+const IMAGE_CONTENT_TYPE_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+export function audioExtensionFor(contentType: string | undefined | null): string {
+  if (!contentType) return "mp3";
+  return AUDIO_CONTENT_TYPE_TO_EXT[contentType.toLowerCase()] ?? "mp3";
+}
+
+export function imageExtensionFor(contentType: string | undefined | null): string {
+  if (!contentType) return "jpg";
+  return IMAGE_CONTENT_TYPE_TO_EXT[contentType.toLowerCase()] ?? "jpg";
+}

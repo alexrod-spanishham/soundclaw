@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -56,6 +56,23 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [agentsLive, setAgentsLive] = useState<number | null>(null);
+
+  // Fetch live agent count once on mount. Sidebar persists across navigations
+  // (it's mounted in the root layout) so a single fetch is sufficient.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/heartbeat")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { total_agents?: number } | null) => {
+        if (cancelled || !d) return;
+        setAgentsLive(d.total_agents ?? 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -163,7 +180,7 @@ export function Sidebar() {
               style={{ boxShadow: "0 0 4px rgba(6, 182, 212, 0.7)" }}
               aria-hidden="true"
             />
-            <span>0 agents live</span>
+            <span>{agentsLive === null ? "—" : agentsLive} agents live</span>
           </div>
           <Link
             href="/about"
