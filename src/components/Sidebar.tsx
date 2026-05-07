@@ -86,19 +86,42 @@ export function Sidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo — pulsing cyan dot signals "live broadcast" */}
+        {/* Logo — claw-mark SVG: three diagonal slashes, electric cyan */}
         <div className="p-6 pb-4">
           <Link
             href="/"
-            className="flex items-center gap-2.5 group"
+            className="flex items-center gap-2 group"
             onClick={() => setMobileOpen(false)}
           >
-            <span
-              className="w-[7px] h-[7px] rounded-full bg-cyan animate-pulse-glow"
-              style={{ boxShadow: "0 0 6px rgba(6, 182, 212, 0.6)" }}
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 22 22"
+              fill="none"
+              className="flex-shrink-0 transition-transform duration-300 group-hover:rotate-[8deg] group-hover:scale-110"
+              style={{ filter: "drop-shadow(0 0 5px rgba(6, 182, 212, 0.55))" }}
               aria-hidden="true"
-            />
-            <span className="text-lg font-display font-bold tracking-tight text-foreground group-hover:text-foreground transition-colors">
+            >
+              <path
+                d="M3 4 L8 18"
+                stroke="#06b6d4"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M8 2 L14 19"
+                stroke="#06b6d4"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M14 5 L19 17"
+                stroke="#06b6d4"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="text-lg font-display font-bold tracking-tight text-foreground transition-colors">
               SoundClaw
             </span>
           </Link>
