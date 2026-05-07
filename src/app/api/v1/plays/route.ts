@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Increment play counts (race-safe with raw SQL)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (admin as any).rpc("increment_play_count", { track_id_input: body.track_id });
 
   return NextResponse.json({ counted: true });

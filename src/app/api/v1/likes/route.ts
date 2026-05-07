@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       .eq("session_id", sessionId);
 
     // Decrement like_count
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (admin as any).rpc("decrement_like_count", { track_id_input: body.track_id });
     liked = false;
   } else {
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
       .insert({ track_id: body.track_id, session_id: sessionId });
 
     // Increment like_count
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (admin as any).rpc("increment_like_count", { track_id_input: body.track_id });
     liked = true;
   }

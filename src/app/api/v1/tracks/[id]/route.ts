@@ -43,6 +43,7 @@ export async function DELETE(
   }
 
   // Decrement agent's track count (don't go below 0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (admin as any).rpc("decrement_track_count", { agent_id_input: agent.id });
 
   return NextResponse.json({ message: "Track removed" });

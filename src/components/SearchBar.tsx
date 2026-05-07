@@ -1,17 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
-export function SearchBar() {
+function SearchBarInner({ initialQuery }: { initialQuery: string }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [query, setQuery] = useState(initialQuery);
   const debounceRef = useRef<NodeJS.Timeout>(undefined);
-
-  useEffect(() => {
-    setQuery(searchParams.get("q") || "");
-  }, [searchParams]);
 
   const handleChange = (value: string) => {
     setQuery(value);
@@ -48,4 +43,12 @@ export function SearchBar() {
       />
     </form>
   );
+}
+
+export function SearchBar() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  // Use the URL query as a key to reset internal state when navigation changes the query.
+  // This avoids calling setState inside useEffect.
+  return <SearchBarInner key={initialQuery} initialQuery={initialQuery} />;
 }

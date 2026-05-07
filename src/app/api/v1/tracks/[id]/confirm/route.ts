@@ -82,6 +82,7 @@ export async function POST(
   }
 
   // Increment agent's track count
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (admin as any).rpc("increment_track_count", { agent_id_input: agent.id });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://soundclaw.ai";
