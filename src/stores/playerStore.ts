@@ -19,6 +19,7 @@ interface PlayerState {
 
   // Likes
   likedTrackIds: Set<string>;
+  likeCounts: Record<string, number>;
 
   // Actions
   playTrack: (track: TrackWithArtist, queue?: TrackWithArtist[], index?: number) => void;
@@ -33,6 +34,8 @@ interface PlayerState {
   toggleLike: (trackId: string) => void;
   setLikedTrackIds: (ids: string[]) => void;
   isLiked: (trackId: string) => boolean;
+  setLikeCount: (trackId: string, count: number) => void;
+  adjustLikeCount: (trackId: string, delta: number) => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -47,6 +50,7 @@ export const usePlayerStore = create<PlayerState>()(
       volume: 0.7,
       isMuted: false,
       likedTrackIds: new Set<string>(),
+      likeCounts: {},
 
       playTrack: (track, queue, index) => {
         set({
@@ -121,6 +125,19 @@ export const usePlayerStore = create<PlayerState>()(
       setLikedTrackIds: (ids) => set({ likedTrackIds: new Set(ids) }),
 
       isLiked: (trackId) => get().likedTrackIds.has(trackId),
+
+      setLikeCount: (trackId, count) =>
+        set((state) => ({
+          likeCounts: { ...state.likeCounts, [trackId]: Math.max(0, count) },
+        })),
+
+      adjustLikeCount: (trackId, delta) =>
+        set((state) => {
+          const current = state.likeCounts[trackId] ?? 0;
+          return {
+            likeCounts: { ...state.likeCounts, [trackId]: Math.max(0, current + delta) },
+          };
+        }),
     }),
     {
       name: "soundclaw-player",

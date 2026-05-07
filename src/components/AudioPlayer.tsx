@@ -9,7 +9,6 @@ import { formatDuration } from "@/lib/utils";
 
 export function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const playTimerRef = useRef<number>(0); // accumulated play time in seconds
   const playCountedRef = useRef<boolean>(false);
   const lastTrackIdRef = useRef<string | null>(null);
 
@@ -30,10 +29,9 @@ export function AudioPlayer() {
     toggleMute,
   } = usePlayerStore();
 
-  // Reset play counter when track changes
+  // Reset play-counted flag when track changes
   useEffect(() => {
     if (currentTrack?.id !== lastTrackIdRef.current) {
-      playTimerRef.current = 0;
       playCountedRef.current = false;
       lastTrackIdRef.current = currentTrack?.id || null;
     }
@@ -73,34 +71,30 @@ export function AudioPlayer() {
     lastSeekRef.current = currentTime;
   }, [currentTime, currentTrack]);
 
-  // Play count tracking — accumulate actual play time
-  useEffect(() => {
-    if (!isPlaying || !currentTrack || playCountedRef.current) return;
-
-    const interval = setInterval(() => {
-      playTimerRef.current += 1;
-      if (playTimerRef.current >= 30 && !playCountedRef.current) {
-        playCountedRef.current = true;
-        // Fire play count
-        fetch("/api/v1/plays", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            track_id: currentTrack.id,
-            duration_listened: Math.floor(playTimerRef.current),
-          }),
-        }).catch(() => {}); // silent fail
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isPlaying, currentTrack]);
-
   const handleTimeUpdate = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     setCurrentTime(audio.currentTime);
-  }, [setCurrentTime]);
+
+    // Play-count threshold: fire once when we've actually played past
+    // ~25s OR within 0.5s of the end (whichever is earlier). The wall-clock
+    // timer approach was unreliable on 30s tracks because the track ended
+    // before the 30th tick fired.
+    if (playCountedRef.current || !currentTrack) return;
+    const dur = audio.duration || 30;
+    const threshold = Math.min(25, dur - 0.5);
+    if (audio.currentTime >= threshold) {
+      playCountedRef.current = true;
+      fetch("/api/v1/plays", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          track_id: currentTrack.id,
+          duration_listened: Math.floor(audio.currentTime),
+        }),
+      }).catch(() => {}); // silent fail
+    }
+  }, [setCurrentTime, currentTrack]);
 
   const handleLoadedMetadata = useCallback(() => {
     const audio = audioRef.current;

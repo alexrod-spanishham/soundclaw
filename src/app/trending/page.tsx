@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: "Top charts and trending AI-generated music on SoundClaw.",
 };
 
+// ISR: refresh data within 30 seconds of next request after new plays/likes.
+export const revalidate = 30;
+
 export default async function TrendingPage() {
   let topByPlays: Awaited<ReturnType<typeof getTrendingTracks>> = [];
   let topByLikes: Awaited<ReturnType<typeof getMostLikedTracks>> = [];

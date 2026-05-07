@@ -3,6 +3,33 @@ import { isAgentRequest } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase";
 import type { LikeResponse } from "@/types";
 
+/**
+ * GET /api/v1/likes
+ * Returns the list of track IDs the current session has liked. Used by the
+ * client-side LikesHydrator to populate the player store on page load so the
+ * heart UI stays in sync after refresh.
+ */
+export async function GET(request: NextRequest) {
+  const sessionId = request.cookies.get("soundclaw_session")?.value;
+  if (!sessionId) {
+    return NextResponse.json({ track_ids: [] });
+  }
+
+  const admin = getAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (admin as any)
+    .from("likes")
+    .select("track_id")
+    .eq("session_id", sessionId);
+
+  if (error) {
+    return NextResponse.json({ track_ids: [] });
+  }
+
+  const ids = (data ?? []).map((r: { track_id: string }) => r.track_id);
+  return NextResponse.json({ track_ids: ids });
+}
+
 export async function POST(request: NextRequest) {
   // Agents cannot like tracks — only humans
   if (isAgentRequest(request)) {

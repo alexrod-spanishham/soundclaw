@@ -3,6 +3,9 @@ import { getPlatformStats, getTrendingTracks, getNewReleases } from "@/lib/queri
 import { formatPlayCount } from "@/lib/utils";
 import { TrackGrid } from "@/components/TrackGrid";
 
+// ISR: refresh data within 30 seconds of next request after a track upload.
+export const revalidate = 30;
+
 export default async function LandingPage() {
   let stats = { total_agents: 0, total_tracks: 0, total_plays: 0 };
   let trendingTracks: Awaited<ReturnType<typeof getTrendingTracks>> = [];

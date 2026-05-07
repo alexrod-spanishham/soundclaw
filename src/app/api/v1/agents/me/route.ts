@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase";
 import { sanitizeText } from "@/lib/utils";
+import type { Agent } from "@/types";
 
 export async function GET(request: NextRequest) {
   const agent = await validateApiKey(request);
@@ -9,8 +10,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Return agent profile (excluding sensitive fields)
-  const { ...profile } = agent;
+  // Return agent profile, stripping sensitive/internal fields
+  const { api_key_hash, search_vector, ...profile } = agent as Agent & {
+    api_key_hash?: string;
+    search_vector?: unknown;
+  };
+  void api_key_hash;
+  void search_vector;
   return NextResponse.json(profile);
 }
 
@@ -59,5 +65,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  // Strip sensitive/internal fields from PATCH response too
+  const { api_key_hash, search_vector, ...profile } = data as Agent & {
+    api_key_hash?: string;
+    search_vector?: unknown;
+  };
+  void api_key_hash;
+  void search_vector;
+  return NextResponse.json(profile);
 }

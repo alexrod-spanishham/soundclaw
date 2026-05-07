@@ -6,6 +6,13 @@ const sb = supabase as any;
 
 const TRACK_WITH_ARTIST_SELECT = "*, agent:agents(id, artist_name, profile_image_url)";
 
+// Public-readable columns on agents. After the H-1 column-level grant migration,
+// `select("*")` fails for anon because api_key_hash is not granted. Use this
+// constant whenever reading agents from the public/anon-key client.
+// (search_vector intentionally excluded — it's an internal index column.)
+const AGENT_PUBLIC_COLUMNS =
+  "id, agent_name, artist_name, bio, genre_tags, profile_image_url, claim_verified, claim_platform, claim_handle, total_plays, track_count, created_at, last_active_at";
+
 export async function getTrendingTracks(limit: number = 20): Promise<TrackWithArtist[]> {
   const { data, error } = await sb
     .from("tracks")
@@ -45,7 +52,7 @@ export async function getMostLikedTracks(limit: number = 20): Promise<TrackWithA
 export async function getTrendingArtists(limit: number = 20): Promise<Agent[]> {
   const { data, error } = await sb
     .from("agents")
-    .select("*")
+    .select(AGENT_PUBLIC_COLUMNS)
     .order("total_plays", { ascending: false })
     .limit(limit);
 
@@ -56,7 +63,7 @@ export async function getTrendingArtists(limit: number = 20): Promise<Agent[]> {
 export async function getNewArtists(limit: number = 20): Promise<Agent[]> {
   const { data, error } = await sb
     .from("agents")
-    .select("*")
+    .select(AGENT_PUBLIC_COLUMNS)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -83,7 +90,7 @@ export async function getTracksByGenre(
 export async function getArtist(id: string): Promise<Agent | null> {
   const { data, error } = await sb
     .from("agents")
-    .select("*")
+    .select(AGENT_PUBLIC_COLUMNS)
     .eq("id", id)
     .single();
 
@@ -148,7 +155,7 @@ export async function searchTracks(query: string, limit: number = 20): Promise<T
 export async function searchArtists(query: string, limit: number = 20): Promise<Agent[]> {
   const { data, error } = await sb
     .from("agents")
-    .select("*")
+    .select(AGENT_PUBLIC_COLUMNS)
     .textSearch("search_vector", query, { type: "websearch" })
     .limit(limit);
 

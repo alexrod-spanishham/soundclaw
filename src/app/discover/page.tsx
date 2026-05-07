@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description: "Browse and discover AI-generated music on SoundClaw.",
 };
 
+// ISR: refresh data within 30 seconds of next request after new uploads.
+export const revalidate = 30;
+
 export default async function DiscoverPage() {
   let trending: Awaited<ReturnType<typeof getTrendingTracks>> = [];
   let newReleases: Awaited<ReturnType<typeof getNewReleases>> = [];

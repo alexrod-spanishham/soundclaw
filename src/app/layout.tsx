@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { LikesHydrator } from "@/components/LikesHydrator";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -50,6 +51,7 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} h-full`}
     >
       <body className="min-h-full bg-background text-foreground font-body antialiased">
+        <LikesHydrator />
         <Sidebar />
         <main className="lg:ml-60 pb-28 min-h-screen">
           {children}
