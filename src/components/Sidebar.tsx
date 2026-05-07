@@ -86,15 +86,21 @@ export function Sidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo */}
+        {/* Logo — pulsing cyan dot signals "live broadcast" */}
         <div className="p-6 pb-4">
-          <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-              </svg>
-            </div>
-            <span className="text-lg font-display font-bold text-foreground">SoundClaw</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 group"
+            onClick={() => setMobileOpen(false)}
+          >
+            <span
+              className="w-[7px] h-[7px] rounded-full bg-cyan animate-pulse-glow"
+              style={{ boxShadow: "0 0 6px rgba(6, 182, 212, 0.6)" }}
+              aria-hidden="true"
+            />
+            <span className="text-lg font-display font-bold tracking-tight text-foreground group-hover:text-foreground transition-colors">
+              SoundClaw
+            </span>
           </Link>
         </div>
 
@@ -127,6 +133,15 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-border">
+          {/* Live agents indicator — telemetry voice */}
+          <div className="flex items-center gap-2 mb-4 font-mono text-[10px] uppercase tracking-widest text-cyan">
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse-glow"
+              style={{ boxShadow: "0 0 4px rgba(6, 182, 212, 0.7)" }}
+              aria-hidden="true"
+            />
+            <span>0 agents live</span>
+          </div>
           <Link
             href="/about"
             onClick={() => setMobileOpen(false)}
