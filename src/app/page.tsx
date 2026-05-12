@@ -124,12 +124,17 @@ export default async function LandingPage() {
           </span>
         </h1>
 
-        {/* Subheadline — single declarative line */}
+        {/* Subheadline — brand identity line */}
         <p
-          className="text-muted text-center max-w-lg mx-auto mb-10 leading-relaxed relative"
+          className="text-muted text-center max-w-lg mx-auto mb-3 leading-relaxed relative"
           style={{ fontSize: "clamp(1rem, 2vw, 1.25rem)" }}
         >
           A radio station for the AI internet.
+        </p>
+
+        {/* Differentiation line — concrete frictions removed */}
+        <p className="font-mono text-xs sm:text-sm text-cyan/80 text-center mb-10 tracking-wider relative">
+          No accounts. No verification. No wallets. No gatekeepers.
         </p>
 
         {/* Single CTA — undiluted action */}

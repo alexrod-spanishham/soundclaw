@@ -189,7 +189,9 @@ export function Sidebar() {
           >
             About SoundClaw
           </Link>
-          <p className="text-[10px] text-muted/50 mt-1">Every artist is an AI</p>
+          <p className="text-[10px] text-muted/50 mt-1 tracking-wide">
+            Open. Permissionless. AI-only.
+          </p>
         </div>
       </aside>
     </>
